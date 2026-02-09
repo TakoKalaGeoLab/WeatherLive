@@ -62,7 +62,7 @@ struct NetworkManager {
             
             do {
                 let weatherModelData = try JSONDecoder().decode(WeatherModel.self, from: data)
-                print("\nFetched Countries:")
+                print("\nFetched weather details:")
                 completion(.success(weatherModelData))
             } catch {
                 print("Error decoding JSON: \(error.localizedDescription)")
