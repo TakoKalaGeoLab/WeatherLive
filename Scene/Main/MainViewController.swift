@@ -6,38 +6,66 @@
 //
 
 import UIKit
+import CoreLocation
 
-class MainViewController: UIViewController {
+class MainViewController: UIViewController, CLLocationManagerDelegate {
+    private var locationManager = CLLocationManager()
+    private var currentLocation: CLLocation?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .gray
-        fetchCountries()
+        setupUI()
+        checkCurrentLocationStatus()
+        setupLocationManager()
     }
     
-    private func fetchCountries() {
-        NetworkManager.fetchCountries { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success(let countries):
-                DispatchQueue.main.async {
-                    let countriesList = Array(countries.dropFirst(100))
-                    NetworkManager.fetchWeatherDetails(
-                        lat: countries.first?.latlng?[0] ?? 0,
-                        lng: countries.first?.latlng?[1] ?? 0
-                    ) { result in
-                        switch result {
-                        case .success(let model):
-                            print(model)
-                        case .failure(let error):
-                            print(error.localizedDescription)
-                        }
-                    }
+    private func setupUI() {
+        view.backgroundColor = .gray
+    }
+    
+    private func checkCurrentLocationStatus() {
+        switch locationManager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            currentLocation = locationManager.location
+            getCurrentLocationWeather()
+        default:
+            return
+        }
+    }
+    
+    private func setupLocationManager() {
+        locationManager.delegate = self
+        locationManager.requestAlwaysAuthorization()
+        locationManager.requestWhenInUseAuthorization()
+    }
+    
+    private func getCurrentLocationWeather() {
+        let lat = currentLocation?.coordinate.latitude ?? 37.3230
+        let lng = currentLocation?.coordinate.longitude ?? 122.0322
+        NetworkManager.fetchWeatherDetails(lat: lat, lng: lng) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let model):
+                    print(model)
+                case .failure(let error):
+                    print(error.localizedDescription)
                 }
-            case .failure(let error):
-                print("Failed to fetch countries: \(error.localizedDescription)")
             }
+        }
+    }
+    
+    private func updateUI() {
+        
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        switch status {
+        case .authorizedAlways, .authorizedWhenInUse:
+            currentLocation = locationManager.location
+            getCurrentLocationWeather()
+        default:
+            return
         }
     }
 }
