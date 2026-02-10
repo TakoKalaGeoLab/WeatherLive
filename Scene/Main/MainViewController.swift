@@ -11,7 +11,7 @@ import CoreLocation
 class MainViewController: UIViewController, CLLocationManagerDelegate {
     private var locationManager = CLLocationManager()
     private var currentLocation: CLLocation?
-    private var citiesList: [String] = ["", ""]
+    private var citiesList: [CityWeather] = []
     
     private lazy var width: CGFloat = view.frame.size.width - 40
     private lazy var height: CGFloat = view.frame.size.height
@@ -94,19 +94,34 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     }
     
     private func getCurrentLocationWeather() {
-        let lat = currentLocation?.coordinate.latitude ?? 37.3230
-        let lng = currentLocation?.coordinate.longitude ?? 122.0322
-        NetworkManager.fetchWeatherDetails(lat: lat, lng: lng) { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let model):
-                    print(model)
-                    self?.collectionView.reloadData()
-                case .failure(let error):
-                    print(error.localizedDescription)
-                }
+        // Comment until real API
+//        let lat = currentLocation?.coordinate.latitude ?? 37.3230
+//        let lng = currentLocation?.coordinate.longitude ?? 122.0322
+//        NetworkManager.fetchWeatherDetails(lat: lat, lng: lng) { [weak self] result in
+//            DispatchQueue.main.async {
+//                switch result {
+//                case .success(let model):
+//                    print(model)
+//                    self?.collectionView.reloadData()
+//                case .failure(let error):
+//                    print(error.localizedDescription)
+//                }
+//            }
+//        }
+        let currentCityId = 1
+        do {
+            let response = try NetworkManager.loadMockWeather()
+            let currentCity = response.cities.first(where: {$0.id == currentCityId })
+            if let currentCity {
+                citiesList.append(currentCity)
+                collectionView.reloadData()
             }
+            
+        } catch {
+            print(error.localizedDescription)
+            // Handle error state
         }
+        
     }
     
     private func updateUI() {
@@ -139,7 +154,8 @@ extension MainViewController: UICollectionViewDataSource {
             for: indexPath
         ) as? WeatherDetailsCollectionViewCell
         else { fatalError() }
-        let model = WeatherDetailsCollectionViewCellModel(temperature: 17)
+        let currentCity = citiesList[indexPath.row]
+        let model = WeatherDetailsCollectionViewCellModel(city: currentCity)
         cell.configure(with: model)
         return  cell
     }

@@ -70,4 +70,13 @@ struct NetworkManager {
             }
         }.resume()
     }
+    
+    static func loadMockWeather() throws -> WeatherDataResponse {
+        guard let url = Bundle.main.url(forResource: "WeatherData", withExtension: "json") else {
+            fatalError("❌ weather_mock.json NOT found in bundle")
+        }
+        
+        let data = try Data(contentsOf: url)
+        return try JSONDecoder().decode(WeatherDataResponse.self, from: data)
+    }
 }

@@ -6,9 +6,9 @@
 //
 
 class WeatherDetailsCollectionViewCellModel {
-    let temperature: Double?
+    let city: CityWeather
     
-    init(temperature: Double?) {
-        self.temperature = temperature
+    init(city: CityWeather) {
+        self.city = city
     }
 }
